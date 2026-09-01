@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>מערכת שיבוץ חדר מחשבים ומשאבי תקשוב</title>
+  <title>שיא-Tech | מערכת שעות לשיבוץ שיעורים מתוקשבים</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -241,9 +241,19 @@
 
     .resource-selector {
       display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .resource-selector-row {
+      display: flex;
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
+    }
+
+    .resource-selector-row label {
+      min-width: 55px;
     }
 
     .resource-selector select, .date-picker-input {
@@ -622,6 +632,74 @@
       border-radius: 4px;
       font-size: 0.85rem;
     }
+
+    /* מודאל תקנון שימוש */
+    .rules-modal-content {
+      max-width: 560px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rules-body {
+      overflow-y: auto;
+      padding-left: 4px;
+    }
+
+    .rules-section {
+      margin-bottom: 18px;
+    }
+
+    .rules-section h4 {
+      color: var(--primary-dark);
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rules-section ul {
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .rules-section li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.6;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .rules-section li::before {
+      content: "✓";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(78, 200, 210, 0.15);
+      color: var(--primary-dark);
+      font-weight: 900;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .rules-signature {
+      text-align: left;
+      font-style: italic;
+      color: var(--text-muted);
+      font-weight: 700;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -631,13 +709,16 @@
       <div class="brand-section">
         <img src="images.png" alt="לוגו מערכת שיבוץ" class="brand-logo" />
         <div class="brand-copy">
-          <h1>מערכת שיבוץ משאבי מחשוב</h1>
+          <h1>שיא-Tech <span style="font-weight:600; opacity:0.9;">| מערכת שעות לשיבוץ שיעורים מתוקשבים</span></h1>
           <p>ניהול שיבוצים שבועיים, שעות קבועות וזמניות עד 30/6/2027</p>
           <span class="sync-status offline" id="syncStatus"><span class="dot"></span> מתחבר לשרת...</span>
         </div>
       </div>
 
       <div class="quick-links">
+        <button type="button" id="rulesBtn" class="btn-link-action">
+          <i class="fa-solid fa-clipboard-list"></i> תקנון שימוש
+        </button>
         <button type="button" id="reportFaultBtn" class="btn-link-action btn-danger-action">
           <i class="fa-solid fa-triangle-exclamation"></i> דיווח על תקלת מחשוב
         </button>
@@ -658,14 +739,17 @@
       </div>
 
       <div class="resource-selector">
-        <label for="resourceSelect"><strong>משאב:</strong></label>
-        <select id="resourceSelect">
-          <option value="lab1">חדר מחשבים א'</option>
-          <option value="lab2">חדר מחשבים ב'</option>
-          <option value="cart1">עגלת כרומבוקים 1</option>
-          <option value="cart2">עגלת מחשבים ניידים 2</option>
-        </select>
-        <input type="date" id="datePicker" class="date-picker-input" title="קפוץ לתאריך">
+        <div class="resource-selector-row">
+          <label for="resourceSelect"><strong>משאב:</strong></label>
+          <select id="resourceSelect">
+            <option value="lab1">חדר מחשבים</option>
+            <option value="cart1">עגלת מחשבים ניידים</option>
+          </select>
+        </div>
+        <div class="resource-selector-row">
+          <label for="datePicker"><strong>תאריך:</strong></label>
+          <input type="date" id="datePicker" class="date-picker-input" title="קפוץ לתאריך">
+        </div>
       </div>
     </div>
 
@@ -764,10 +848,8 @@
         <div class="form-group">
           <label for="faultLocation">חדר / משאב בו אירעה התקלה:*</label>
           <select id="faultLocation" required>
-            <option value="חדר מחשבים א'">חדר מחשבים א'</option>
-            <option value="חדר מחשבים ב'">חדר מחשבים ב'</option>
-            <option value="עגלת כרומבוקים 1">עגלת כרומבוקים 1</option>
-            <option value="עגלת מחשבים ניידים 2">עגלת מחשבים ניידים 2</option>
+            <option value="חדר מחשבים">חדר מחשבים</option>
+            <option value="עגלת מחשבים ניידים">עגלת מחשבים ניידים</option>
             <option value="אחר">אחר</option>
           </select>
         </div>
@@ -795,6 +877,44 @@
           <button type="submit" class="btn-submit"><i class="fa-solid fa-paper-plane"></i> שליחת דיווח</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- מודאל תקנון שימוש -->
+  <div class="modal-backdrop" id="rulesModal">
+    <div class="modal-content rules-modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-clipboard-list"></i> תקנון שימוש בחדר המחשבים ובעגלת הניידים</h3>
+        <button class="modal-close" id="closeRulesModalBtn">&times;</button>
+      </div>
+
+      <div class="rules-body">
+        <article class="rules-section">
+          <h4><i class="fa-solid fa-desktop"></i> חדר מחשבים</h4>
+          <ul>
+            <li>מורה שמגיעה לחדר המחשבים / לוקחת ניידים עם כיתתה, אחראית על תקינות הציוד המתוקשב.</li>
+            <li>לא לשכוח: לכבות מקרן, אורות ומזגנים.</li>
+            <li>אין להכניס לחדר המחשבים אוכל ושתייה.</li>
+            <li>יש להשאיר חדר נקי ומסודר מבחינת כיסאות ולסגור את המזגנים.</li>
+            <li>בסיום השימוש <strong>בסוף יום בלבד!</strong> יש לבקש מהתלמידים ללחוץ על כפתור התחל ולהכניס את המחשבים למצב כיבוי.</li>
+          </ul>
+        </article>
+
+        <article class="rules-section">
+          <h4><i class="fa-solid fa-laptop"></i> השאלת מחשבים ניידים</h4>
+          <ul>
+            <li>בסיום השאלת המחשבים באחריות המורה לדאוג כי המחשבים חזרו לעגלת הניידים להטענה.</li>
+            <li>יש לנעול את העגלה בעת לקיחת המחשבים וגם בסיומה.</li>
+            <li>יש להחזיר את המפתח לשלומי השומר בסיום השימוש ולוודא כי המפתח חזר.</li>
+          </ul>
+        </article>
+
+        <p class="rules-signature">חן חכם, רכזת התקשוב</p>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-submit" id="closeRulesModalBtn2">הבנתי, סגור</button>
+      </div>
     </div>
   </div>
 
@@ -993,6 +1113,16 @@
 
     document.getElementById('changeUserBtn').onclick = openLoginModal;
     document.getElementById('closeLoginModalBtn').onclick = closeLoginModal;
+
+    /* =========================================================================
+       תקנון שימוש
+       ========================================================================= */
+    const rulesModal = document.getElementById('rulesModal');
+    function openRulesModal() { rulesModal.style.display = 'flex'; }
+    function closeRulesModal() { rulesModal.style.display = 'none'; }
+    document.getElementById('rulesBtn').onclick = openRulesModal;
+    document.getElementById('closeRulesModalBtn').onclick = closeRulesModal;
+    document.getElementById('closeRulesModalBtn2').onclick = closeRulesModal;
 
     document.getElementById('loginForm').onsubmit = function(e) {
       e.preventDefault();
