@@ -83,6 +83,18 @@
       filter: drop-shadow(0 12px 18px rgba(14, 48, 58, 0.18));
     }
 
+    @media (max-width: 720px) {
+      .brand-logo {
+        width: 64px;
+      }
+    }
+
+    .ltr-range {
+      direction: ltr;
+      unicode-bidi: isolate;
+      display: inline-block;
+    }
+
     .brand-copy {
       display: flex;
       flex-direction: column;
@@ -521,6 +533,95 @@
       cursor: pointer;
       font-weight: 600;
     }
+
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+      resize: vertical;
+      min-height: 90px;
+      font-family: 'Assistant', sans-serif;
+    }
+
+    .form-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 6px;
+      display: block;
+    }
+
+    /* Sync status badge */
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.22);
+    }
+    .sync-status.offline {
+      background: rgba(239, 68, 68, 0.25);
+    }
+    .sync-status .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      box-shadow: 0 0 6px var(--accent-2);
+    }
+    .sync-status.offline .dot {
+      background: #ff8a8a;
+      box-shadow: 0 0 6px #ff8a8a;
+    }
+
+    /* Setup-required overlay (shown until Firebase config is filled in) */
+    .setup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+    .setup-card {
+      background: white;
+      border-radius: 16px;
+      max-width: 620px;
+      width: 100%;
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      text-align: right;
+      line-height: 1.8;
+    }
+    .setup-card h2 {
+      color: var(--primary-dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .setup-card ol {
+      margin: 12px 0 12px 0;
+      padding-right: 22px;
+      display: grid;
+      gap: 8px;
+    }
+    .setup-card code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
   </style>
 </head>
 <body>
@@ -532,16 +633,17 @@
         <div class="brand-copy">
           <h1>מערכת שיבוץ משאבי מחשוב</h1>
           <p>ניהול שיבוצים שבועיים, שעות קבועות וזמניות עד 30/6/2027</p>
+          <span class="sync-status offline" id="syncStatus"><span class="dot"></span> מתחבר לשרת...</span>
         </div>
       </div>
 
       <div class="quick-links">
-        <a href="https://docs.google.com/document/d/1R61VGsyQQH9gBumIIQkdjzaj0QwRj8IIJtI0MgcB_gk/edit?usp=sharing" target="_blank" class="btn-link-action btn-danger-action">
+        <button type="button" id="reportFaultBtn" class="btn-link-action btn-danger-action">
           <i class="fa-solid fa-triangle-exclamation"></i> דיווח על תקלת מחשוב
-        </a>
-        <a href="https://docs.google.com/document/d/18fGk7peszzTvirYfcFCBYYUBmGo10kKDOe_hBzIpvLk/edit?usp=sharing" target="_blank" class="btn-link-action">
-          <i class="fa-solid fa-table"></i> צפייה במערכת הקיימת
-        </a>
+        </button>
+        <button type="button" id="changeUserBtn" class="btn-link-action">
+          <i class="fa-solid fa-user"></i> <span id="currentUserLabel">התחברות</span>
+        </button>
       </div>
     </div>
   </header>
@@ -552,7 +654,7 @@
         <button class="nav-btn" id="prevWeekBtn"><i class="fa-solid fa-chevron-right"></i> שבוע קודם</button>
         <button class="nav-btn" id="todayBtn"><i class="fa-solid fa-calendar-day"></i> השבוע הנוכחי</button>
         <button class="nav-btn" id="nextWeekBtn">שבוע הבא <i class="fa-solid fa-chevron-left"></i></button>
-        <span class="current-week-display" id="weekRangeLabel">טוען...</span>
+        <span class="current-week-display ltr-range" id="weekRangeLabel">טוען...</span>
       </div>
 
       <div class="resource-selector">
@@ -626,6 +728,99 @@
     </div>
   </div>
 
+  <!-- מודאל התחברות (זיהוי שם משתמש) -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user"></i> זיהוי משתמש</h3>
+        <button class="modal-close" id="closeLoginModalBtn">&times;</button>
+      </div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginName">שם מלא:*</label>
+          <input type="text" id="loginName" placeholder="לדוגמה: רונית כהן" required>
+          <span class="form-hint">השם ישמש לזיהוי השיבוצים שלך ולמילוי אוטומטי בטפסים. ניתן להחליף בכל עת.</span>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-submit">שמירה והמשך</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- מודאל דיווח על תקלת מחשוב -->
+  <div class="modal-backdrop" id="faultModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> דיווח על תקלת מחשוב</h3>
+        <button class="modal-close" id="closeFaultModalBtn">&times;</button>
+      </div>
+      <form id="faultForm">
+        <div class="form-group">
+          <label for="faultReporterName">שם המדווח/ת:*</label>
+          <input type="text" id="faultReporterName" required>
+        </div>
+
+        <div class="form-group">
+          <label for="faultLocation">חדר / משאב בו אירעה התקלה:*</label>
+          <select id="faultLocation" required>
+            <option value="חדר מחשבים א'">חדר מחשבים א'</option>
+            <option value="חדר מחשבים ב'">חדר מחשבים ב'</option>
+            <option value="עגלת כרומבוקים 1">עגלת כרומבוקים 1</option>
+            <option value="עגלת מחשבים ניידים 2">עגלת מחשבים ניידים 2</option>
+            <option value="אחר">אחר</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="faultDeviceId">מספר מחשב / תחנה (אם ידוע):</label>
+          <input type="text" id="faultDeviceId" placeholder="לדוגמה: עמדה 4">
+        </div>
+
+        <div class="form-group">
+          <label for="faultUrgency">דחיפות:*</label>
+          <select id="faultUrgency" required>
+            <option value="רגילה">רגילה</option>
+            <option value="גבוהה - מונע שימוש בשיעור">גבוהה - מונע שימוש בשיעור</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="faultDescription">תיאור התקלה:*</label>
+          <textarea id="faultDescription" required placeholder="פרטו מה קרה, מתי, ומה נעשה עד כה..."></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="cancelFaultModalBtn">ביטול</button>
+          <button type="submit" class="btn-submit"><i class="fa-solid fa-paper-plane"></i> שליחת דיווח</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- מסך הגדרת חיבור לשרת (מוצג רק אם Firebase לא הוגדר) -->
+  <div class="setup-overlay" id="setupOverlay">
+    <div class="setup-card">
+      <h2><i class="fa-solid fa-server"></i> נדרשת הגדרת חיבור לשרת</h2>
+      <p>כדי שכולם יראו את אותו לוח שיבוצים בזמן אמת, האתר צריך להתחבר למסד נתונים חינמי (Firebase). זו פעולה חד-פעמית של כמה דקות:</p>
+      <ol>
+        <li>גשו ל-<code>console.firebase.google.com</code> והתחברו עם חשבון Google.</li>
+        <li>לחצו <strong>Add project</strong>, תנו שם (למשל <code>computer-lab-schedule</code>) וסיימו את היצירה (ניתן לכבות Analytics).</li>
+        <li>בתפריט הצד: <strong>Build → Firestore Database → Create database</strong>. בחרו אזור קרוב (למשל <code>eur3</code>) והתחילו ב-<strong>test mode</strong>.</li>
+        <li>בתפריט הצד: <strong>Project settings</strong> (סמל הגלגל) → גללו למטה ל-<strong>Your apps</strong> → לחצו על סמל ה-Web <code>&lt;/&gt;</code> → תנו שם ולחצו Register.</li>
+        <li>העתיקו את אובייקט <code>firebaseConfig</code> שמופיע, ושלחו אותו לי (או הדביקו אותו בקובץ <code>index.html</code> במקום המסומן <code>REPLACE_ME</code> בתחילת ה-script).</li>
+      </ol>
+      <p class="form-hint">עד להשלמת השלב הזה, השיבוצים לא יישמרו באופן גלובלי. אפשר לסגור חלון זה ולהמשיך לצפות בעמוד.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="dismissSetupBtn">הבנתי, סגור</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat build – global firebase.* API) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
   <script>
     /* =========================================================================
        נתוני חגים ומועדים (סנכרון חופשות משרד החינוך עד 30.6.2027)
@@ -681,7 +876,25 @@
     let currentResource = "lab1";
 
     /* =========================================================================
-       אחסון נתונים ב-LocalStorage
+       חיבור לשרת גלובלי (Firebase Firestore)
+       החליפו את הערכים למטה בערכי firebaseConfig מפרויקט ה-Firebase שלכם
+       (Project settings → Your apps → SDK setup and configuration).
+       ========================================================================= */
+    const firebaseConfig = {
+      apiKey: "AIzaSyCOIutxLL0Mqa3vXlxvoi3ExKSzIdBAxKA",
+      authDomain: "computer-lab-schedule-f4533.firebaseapp.com",
+      projectId: "computer-lab-schedule-f4533",
+      storageBucket: "computer-lab-schedule-f4533.firebasestorage.app",
+      messagingSenderId: "539596943239",
+      appId: "1:539596943239:web:e1e4b4b7476e3b557aad22"
+    };
+
+    const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "REPLACE_ME";
+    let db = null;
+    const STATE_COLLECTION = "computerLabState";
+
+    /* =========================================================================
+       אחסון נתונים (Firestore כשמוגדר, עם גיבוי מקומי ב-LocalStorage)
        ========================================================================= */
     function getStoredData(key, defaultVal) {
       const data = localStorage.getItem(key);
@@ -698,6 +911,97 @@
     let tempBookings = getStoredData("computer_temp_bookings", {});
     // ביטולים של שעה קבועה בשבוע ספציפי: overrides { "YYYY-MM-DD": { resourceId: { "hour": true } } }
     let cancelledFixed = getStoredData("computer_cancelled_fixed", {});
+
+    const STATE_MAP = {
+      fixedBookings: { localKey: "computer_fixed_bookings", get: () => fixedBookings, set: (v) => { fixedBookings = v; } },
+      tempBookings: { localKey: "computer_temp_bookings", get: () => tempBookings, set: (v) => { tempBookings = v; } },
+      cancelledFixed: { localKey: "computer_cancelled_fixed", get: () => cancelledFixed, set: (v) => { cancelledFixed = v; } }
+    };
+
+    function setSyncStatus(connected, label) {
+      const el = document.getElementById('syncStatus');
+      el.classList.toggle('offline', !connected);
+      el.innerHTML = `<span class="dot"></span> ${label}`;
+    }
+
+    function initFirebase() {
+      if (!isFirebaseConfigured) {
+        setSyncStatus(false, 'מצב מקומי בלבד (שרת לא הוגדר)');
+        document.getElementById('setupOverlay').style.display = 'flex';
+        return;
+      }
+      try {
+        const app = firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore(app);
+        setSyncStatus(false, 'מתחבר לשרת...');
+
+        Object.keys(STATE_MAP).forEach(docName => {
+          const ref = db.collection(STATE_COLLECTION).doc(docName);
+          ref.onSnapshot(snap => {
+            const data = snap.exists ? snap.data().value : {};
+            STATE_MAP[docName].set(data || {});
+            setStoredData(STATE_MAP[docName].localKey, data || {});
+            setSyncStatus(true, 'מסונכרן בזמן אמת עם כל המשתמשים');
+            renderSchedule();
+          }, err => {
+            console.error('Firestore sync error:', err);
+            setSyncStatus(false, 'שגיאת חיבור לשרת - עובד במצב מקומי');
+          });
+        });
+      } catch (err) {
+        console.error('Firebase init failed:', err);
+        setSyncStatus(false, 'שגיאת הגדרה - עובד במצב מקומי');
+        document.getElementById('setupOverlay').style.display = 'flex';
+      }
+    }
+
+    function persistState(docName) {
+      const value = STATE_MAP[docName].get();
+      setStoredData(STATE_MAP[docName].localKey, value);
+      if (db) {
+        db.collection(STATE_COLLECTION).doc(docName).set({ value }).catch(err => {
+          console.error('Firestore write failed:', err);
+          alert('שמירת השינוי בשרת נכשלה. בדקו את החיבור לאינטרנט ונסו שוב.');
+        });
+      } else {
+        // אין חיבור לשרת - מרנדרים מיד מהעותק המקומי
+        renderSchedule();
+      }
+    }
+
+    /* =========================================================================
+       זיהוי משתמש (שם המורה)
+       ========================================================================= */
+    let currentUser = localStorage.getItem('computer_current_user') || '';
+
+    function updateUserLabel() {
+      document.getElementById('currentUserLabel').innerText = currentUser ? currentUser : 'התחברות';
+    }
+
+    function isOwner(name) {
+      return currentUser && name && currentUser.trim().toLowerCase() === name.trim().toLowerCase();
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginName').value = currentUser;
+      document.getElementById('loginModal').style.display = 'flex';
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    document.getElementById('changeUserBtn').onclick = openLoginModal;
+    document.getElementById('closeLoginModalBtn').onclick = closeLoginModal;
+
+    document.getElementById('loginForm').onsubmit = function(e) {
+      e.preventDefault();
+      currentUser = document.getElementById('loginName').value.trim();
+      localStorage.setItem('computer_current_user', currentUser);
+      updateUserLabel();
+      closeLoginModal();
+      renderSchedule();
+    };
 
     /* =========================================================================
        עזרי תאריכים
@@ -772,7 +1076,7 @@
         // עמודת שעה
         const tdHour = document.createElement('td');
         tdHour.className = 'hour-col';
-        tdHour.innerHTML = `<strong>שעה ${hour.num}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${hour.time}</span>`;
+        tdHour.innerHTML = `<strong>שעה ${hour.num}</strong><br><span class="ltr-range" style="font-size:0.75rem; color:var(--text-muted);">${hour.time}</span>`;
         tr.appendChild(tdHour);
 
         // עמודות ימים
@@ -792,14 +1096,15 @@
 
           if (tempData) {
             // שיבוץ זמני
+            const canCancelTemp = isOwner(tempData.teacher);
             td.innerHTML = `
               <div class="booking-card temp">
                 <div>
                   <div class="booking-teacher">
                     <span><i class="fa-solid fa-chalkboard-user"></i> ${tempData.teacher}</span>
-                    <button class="btn-cancel-slot" title="בטל שיבוץ" onclick="cancelTempSlot('${dateKey}', '${hour.num}')">
+                    ${canCancelTemp ? `<button class="btn-cancel-slot" title="בטל שיבוץ" onclick="cancelTempSlot('${dateKey}', '${hour.num}')">
                       <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                    </button>` : ''}
                   </div>
                   <div class="booking-meta"><i class="fa-solid fa-users"></i> ${tempData.className} | ${tempData.subject || 'שיעור'}</div>
                 </div>
@@ -808,14 +1113,15 @@
             `;
           } else if (fixedData) {
             // שיבוץ קבוע
+            const canCancelFixed = isOwner(fixedData.teacher);
             td.innerHTML = `
               <div class="booking-card fixed">
                 <div>
                   <div class="booking-teacher">
                     <span><i class="fa-solid fa-lock"></i> ${fixedData.teacher}</span>
-                    <button class="btn-cancel-slot" title="בטל שיעור קבוע לשבוע זה" onclick="cancelFixedForThisWeek('${dateKey}', '${hour.num}')">
+                    ${canCancelFixed ? `<button class="btn-cancel-slot" title="בטל שיעור קבוע לשבוע זה" onclick="cancelFixedForThisWeek('${dateKey}', '${hour.num}')">
                       <i class="fa-solid fa-xmark"></i>
-                    </button>
+                    </button>` : ''}
                   </div>
                   <div class="booking-meta"><i class="fa-solid fa-users"></i> ${fixedData.className} | ${fixedData.subject || 'קבוע'}</div>
                 </div>
@@ -843,17 +1149,23 @@
     const form = document.getElementById('bookingForm');
 
     function openBookingModal(dayIndex, hourNum, dateObj) {
+      if (!currentUser) {
+        alert('יש להזין שם משתמש לפני יצירת שיבוץ.');
+        openLoginModal();
+        return;
+      }
+
       document.getElementById('slotDayIndex').value = dayIndex;
       document.getElementById('slotHourIndex').value = hourNum;
       document.getElementById('slotDate').value = formatDateKey(dateObj);
-      
+
       const holiday = HOLIDAYS_DB[formatDateKey(dateObj)];
       document.getElementById('slotDetailsText').innerHTML = `
         יום ${DAYS[dayIndex]} (${formatDateDisplay(dateObj)}) | שעה ${hourNum}
         ${holiday ? `<br><span style="color:var(--danger); font-size:0.85rem;"><i class="fa-solid fa-info-circle"></i> שימו לב: יום זה מסומן כ${holiday}</span>` : ''}
       `;
 
-      document.getElementById('teacherName').value = '';
+      document.getElementById('teacherName').value = currentUser;
       document.getElementById('className').value = '';
       document.getElementById('subjectName').value = '';
       document.getElementById('isFixedSlot').checked = false;
@@ -882,19 +1194,19 @@
         // שמירה כשעה קבועה
         if (!fixedBookings[currentResource]) fixedBookings[currentResource] = {};
         fixedBookings[currentResource][`${dayIdx}_${hourNum}`] = { teacher, className, subject };
-        setStoredData("computer_fixed_bookings", fixedBookings);
+        persistState("fixedBookings");
       } else {
         // שמירה כשיעור זמני
         if (!tempBookings[dateKey]) tempBookings[dateKey] = {};
         if (!tempBookings[dateKey][currentResource]) tempBookings[dateKey][currentResource] = {};
         tempBookings[dateKey][currentResource][hourNum] = { teacher, className, subject };
-        setStoredData("computer_temp_bookings", tempBookings);
+        persistState("tempBookings");
       }
 
       // במידה והיה ביטול בעבר לשעה זו, מנקים אותו
       if (cancelledFixed[dateKey]?.[currentResource]?.[hourNum]) {
         delete cancelledFixed[dateKey][currentResource][hourNum];
-        setStoredData("computer_cancelled_fixed", cancelledFixed);
+        persistState("cancelledFixed");
       }
 
       closeModal();
@@ -905,21 +1217,30 @@
        ביטולי שיעורים
        ========================================================================= */
     window.cancelTempSlot = function(dateKey, hourNum) {
+      const existing = tempBookings[dateKey]?.[currentResource]?.[hourNum];
+      if (!existing || !isOwner(existing.teacher)) {
+        alert('ניתן לבטל רק שיבוצים שנוצרו על ידכם.');
+        return;
+      }
       if (confirm("האם לבטל את השיעור הזמני? המשבצת תתפנה מיד.")) {
-        if (tempBookings[dateKey]?.[currentResource]?.[hourNum]) {
-          delete tempBookings[dateKey][currentResource][hourNum];
-          setStoredData("computer_temp_bookings", tempBookings);
-          renderSchedule();
-        }
+        delete tempBookings[dateKey][currentResource][hourNum];
+        persistState("tempBookings");
+        renderSchedule();
       }
     };
 
     window.cancelFixedForThisWeek = function(dateKey, hourNum) {
+      const dayIdx = [0, 1, 2, 3, 4, 5].findIndex(i => formatDateKey(addDays(currentSunday, i)) === dateKey);
+      const fixedEntry = fixedBookings[currentResource]?.[`${dayIdx}_${hourNum}`];
+      if (!fixedEntry || !isOwner(fixedEntry.teacher)) {
+        alert('ניתן לבטל רק שיעורים קבועים שנוצרו על ידכם.');
+        return;
+      }
       if (confirm("האם לבטל את השעה הקבועה לשבוע זה בלבד? (השעה תמשיך להופיע בשבועות הבאים)")) {
         if (!cancelledFixed[dateKey]) cancelledFixed[dateKey] = {};
         if (!cancelledFixed[dateKey][currentResource]) cancelledFixed[dateKey][currentResource] = {};
         cancelledFixed[dateKey][currentResource][hourNum] = true;
-        setStoredData("computer_cancelled_fixed", cancelledFixed);
+        persistState("cancelledFixed");
         renderSchedule();
       }
     };
@@ -954,7 +1275,72 @@
       }
     };
 
+    /* =========================================================================
+       דיווח על תקלת מחשוב - שליחה במייל לאחראי התקשוב
+       ========================================================================= */
+    const FAULT_REPORT_EMAIL = "1002006782@educ.org.il";
+    const faultModal = document.getElementById('faultModal');
+    const faultForm = document.getElementById('faultForm');
+
+    function openFaultModal() {
+      document.getElementById('faultReporterName').value = currentUser || '';
+      document.getElementById('faultLocation').value = resourceLabel(currentResource);
+      document.getElementById('faultDeviceId').value = '';
+      document.getElementById('faultUrgency').value = 'רגילה';
+      document.getElementById('faultDescription').value = '';
+      faultModal.style.display = 'flex';
+    }
+
+    function closeFaultModal() {
+      faultModal.style.display = 'none';
+    }
+
+    function resourceLabel(resourceId) {
+      const opt = document.querySelector(`#resourceSelect option[value="${resourceId}"]`);
+      return opt ? opt.innerText : resourceId;
+    }
+
+    document.getElementById('reportFaultBtn').onclick = openFaultModal;
+    document.getElementById('closeFaultModalBtn').onclick = closeFaultModal;
+    document.getElementById('cancelFaultModalBtn').onclick = closeFaultModal;
+
+    faultForm.onsubmit = function(e) {
+      e.preventDefault();
+      const reporter = document.getElementById('faultReporterName').value.trim();
+      const location = document.getElementById('faultLocation').value;
+      const deviceId = document.getElementById('faultDeviceId').value.trim();
+      const urgency = document.getElementById('faultUrgency').value;
+      const description = document.getElementById('faultDescription').value.trim();
+      const now = new Date();
+      const reportedAt = `${formatDateDisplay(now)} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+      const subject = `דיווח תקלת מחשוב - ${location}${urgency.startsWith('גבוהה') ? ' [דחוף]' : ''}`;
+      const bodyLines = [
+        `שם המדווח/ת: ${reporter}`,
+        `חדר / משאב: ${location}`,
+        deviceId ? `מספר מחשב / תחנה: ${deviceId}` : null,
+        `דחיפות: ${urgency}`,
+        `תאריך ושעת דיווח: ${reportedAt}`,
+        '',
+        'תיאור התקלה:',
+        description
+      ].filter(Boolean);
+
+      const mailtoUrl = `mailto:${FAULT_REPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join('\n'))}`;
+      window.location.href = mailtoUrl;
+
+      closeFaultModal();
+    };
+
     // אתחול ראשוני
+    updateUserLabel();
+    if (!currentUser) {
+      openLoginModal();
+    }
+    document.getElementById('dismissSetupBtn').onclick = () => {
+      document.getElementById('setupOverlay').style.display = 'none';
+    };
+    initFirebase();
     renderSchedule();
   </script>
 </body>
