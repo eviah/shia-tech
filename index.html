@@ -742,8 +742,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.7rem;
+      overflow: hidden;
       box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+    }
+
+    .login-hero-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .login-hero-brand {
@@ -926,7 +933,9 @@
       <button class="modal-close login-close" id="closeLoginModalBtn">&times;</button>
 
       <div class="login-hero">
-        <div class="login-hero-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="login-hero-icon">
+          <img src="images.png" alt="לוגו שיא-Tech" />
+        </div>
         <div class="login-hero-brand">שיא-Tech</div>
         <div class="login-hero-title">ברוכים הבאים!</div>
         <div class="login-hero-sub">מערכת שעות לשיבוץ שיעורים מתוקשבים</div>
@@ -934,7 +943,7 @@
 
       <form id="loginForm" class="login-form">
         <div class="form-group">
-          <label for="loginName"><i class="fa-solid fa-signature"></i> מי אנחנו מארחים היום?</label>
+          <label for="loginName"><i class="fa-solid fa-signature"></i>שם המורה המזמינה</label>
           <input type="text" id="loginName" placeholder="לדוגמה: רונית כהן" required autocomplete="name">
           <span class="form-hint">השם ישמש לזיהוי השיבוצים שלך ולמילוי אוטומטי בטפסים. ניתן להחליף בכל עת.</span>
         </div>
