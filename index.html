@@ -700,6 +700,114 @@
       padding-top: 12px;
       margin-top: 4px;
     }
+
+    /* מודאל התחברות - עיצוב מיוחד */
+    .login-modal-content {
+      max-width: 440px;
+      padding: 0;
+      overflow: hidden;
+      border-radius: 20px;
+      position: relative;
+    }
+
+    .login-close {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 2;
+      color: rgba(255,255,255,0.85);
+      font-size: 1.3rem;
+    }
+    .login-close:hover {
+      color: white;
+    }
+
+    .login-hero {
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.16), transparent 40%),
+        radial-gradient(circle at 85% 0%, rgba(143, 219, 118, 0.28), transparent 45%),
+        linear-gradient(135deg, #0f7b85 0%, #0d6b7a 45%, #0a4e59 100%);
+      color: white;
+      text-align: center;
+      padding: 38px 28px 32px;
+    }
+
+    .login-hero-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+    }
+
+    .login-hero-brand {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .login-hero-title {
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .login-hero-sub {
+      font-size: 0.92rem;
+      opacity: 0.9;
+      font-weight: 600;
+    }
+
+    .login-form {
+      padding: 26px 28px 28px;
+    }
+
+    .login-form .form-group label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--primary-dark);
+    }
+
+    .login-form input {
+      font-size: 1.05rem;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .login-form input:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(78, 200, 210, 0.18);
+    }
+
+    .login-actions {
+      justify-content: stretch;
+      margin-top: 22px;
+    }
+
+    .login-submit {
+      width: 100%;
+      justify-content: center;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 20px;
+      font-size: 1.02rem;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      box-shadow: 0 10px 20px rgba(13, 107, 122, 0.25);
+    }
+    .login-submit:hover {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    }
   </style>
 </head>
 <body>
@@ -814,19 +922,24 @@
 
   <!-- מודאל התחברות (זיהוי שם משתמש) -->
   <div class="modal-backdrop" id="loginModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-user"></i> זיהוי משתמש</h3>
-        <button class="modal-close" id="closeLoginModalBtn">&times;</button>
+    <div class="modal-content login-modal-content">
+      <button class="modal-close login-close" id="closeLoginModalBtn">&times;</button>
+
+      <div class="login-hero">
+        <div class="login-hero-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="login-hero-brand">שיא-Tech</div>
+        <div class="login-hero-title">ברוכים הבאים!</div>
+        <div class="login-hero-sub">מערכת שעות לשיבוץ שיעורים מתוקשבים</div>
       </div>
-      <form id="loginForm">
+
+      <form id="loginForm" class="login-form">
         <div class="form-group">
-          <label for="loginName">שם מלא:*</label>
-          <input type="text" id="loginName" placeholder="לדוגמה: רונית כהן" required>
+          <label for="loginName"><i class="fa-solid fa-signature"></i> מי אנחנו מארחים היום?</label>
+          <input type="text" id="loginName" placeholder="לדוגמה: רונית כהן" required autocomplete="name">
           <span class="form-hint">השם ישמש לזיהוי השיבוצים שלך ולמילוי אוטומטי בטפסים. ניתן להחליף בכל עת.</span>
         </div>
-        <div class="modal-actions">
-          <button type="submit" class="btn-submit">שמירה והמשך</button>
+        <div class="modal-actions login-actions">
+          <button type="submit" class="btn-submit login-submit"><i class="fa-solid fa-arrow-left"></i> כניסה למערכת</button>
         </div>
       </form>
     </div>
