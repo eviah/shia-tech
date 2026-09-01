@@ -11,22 +11,25 @@
 
   <style>
     :root {
-      --primary: #1e3a8a;
-      --primary-light: #3b82f6;
-      --accent: #0ea5e9;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
+      --primary: #0d6b7a;
+      --primary-dark: #0a4e59;
+      --primary-light: #4ec8d2;
+      --accent: #f7d45d;
+      --accent-2: #8fdb76;
+      --bg: #eef9fb;
+      --card-bg: rgba(255, 255, 255, 0.96);
+      --text: #123947;
+      --text-muted: #5b7d86;
+      --border: rgba(13, 107, 122, 0.12);
       --holiday-bg: #fff1f2;
       --holiday-border: #fecdd3;
       --holiday-text: #e11d48;
-      --fixed-slot-bg: #e0f2fe;
-      --fixed-slot-border: #38bdf8;
-      --temp-slot-bg: #ecfdf5;
-      --temp-slot-border: #34d399;
+      --fixed-slot-bg: #e7f9ff;
+      --fixed-slot-border: #1ab6d8;
+      --temp-slot-bg: #ebfff4;
+      --temp-slot-border: #32c98d;
       --danger: #ef4444;
+      --shadow-soft: 0 18px 40px rgba(18, 57, 71, 0.12);
     }
 
     * {
@@ -37,69 +40,123 @@
     }
 
     body {
-      background-color: var(--bg);
+      background:
+        radial-gradient(circle at top right, rgba(78, 200, 210, 0.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(143, 219, 118, 0.16), transparent 24%),
+        var(--bg);
       color: var(--text);
       padding-bottom: 40px;
     }
 
     /* Header & Navigation */
     header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      background: linear-gradient(135deg, #0f7b85 0%, #0d6b7a 28%, #0c5261 100%);
       color: white;
-      padding: 1rem 2rem;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      padding: 1.1rem 1.2rem 1.4rem;
+      box-shadow: 0 12px 28px rgba(12, 82, 97, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-inner {
+      max-width: 1420px;
+      margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 1rem;
       flex-wrap: wrap;
-      gap: 15px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      flex: 1 1 420px;
+    }
+
+    .brand-logo {
+      width: clamp(120px, 14vw, 220px);
+      height: auto;
+      filter: drop-shadow(0 12px 18px rgba(14, 48, 58, 0.18));
+    }
+
+    .brand-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
     }
 
     .brand-section h1 {
-      font-size: 1.6rem;
+      font-size: clamp(1.25rem, 2vw, 2rem);
       font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
     }
 
     .brand-section p {
       font-size: 0.95rem;
-      opacity: 0.85;
+      opacity: 0.9;
+      font-weight: 600;
     }
 
     .quick-links {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .btn-link-action {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.12);
       color: white;
       text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.95rem;
+      padding: 0.8rem 1.1rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.92rem;
       transition: all 0.2s ease;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(6px);
     }
 
     .btn-link-action:hover {
-      background: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.22);
       transform: translateY(-2px);
+      box-shadow: 0 12px 18px rgba(7, 28, 33, 0.15);
     }
 
     .btn-danger-action {
-      background: #ef4444;
+      background: linear-gradient(135deg, #ff6b6b, #ef4444);
       border: none;
     }
     .btn-danger-action:hover {
-      background: #dc2626;
+      background: linear-gradient(135deg, #ff7d7d, #dc2626);
+    }
+
+    @media (max-width: 720px) {
+      .header-inner {
+        align-items: flex-start;
+      }
+
+      .brand-section {
+        width: 100%;
+      }
+
+      .quick-links {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .btn-link-action {
+        flex: 1 1 100%;
+        justify-content: center;
+      }
     }
 
     /* Main Container */
@@ -111,37 +168,40 @@
 
     /* Controls Bar */
     .controls-card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 16px 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.96));
+      border-radius: 22px;
+      padding: 18px 20px;
       border: 1px solid var(--border);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      box-shadow: var(--shadow-soft);
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 15px;
-      margin-bottom: 20px;
+      margin: 20px auto 22px;
+      max-width: 1420px;
     }
 
     .week-navigator {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .nav-btn {
-      background: #f1f5f9;
+      background: linear-gradient(180deg, #f8fbfd, #edf5f8);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 8px 14px;
-      border-radius: 6px;
+      padding: 10px 16px;
+      border-radius: 12px;
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 800;
       transition: all 0.2s;
       display: flex;
       align-items: center;
       gap: 6px;
+      box-shadow: 0 8px 12px rgba(19, 89, 100, 0.05);
     }
 
     .nav-btn:hover:not(:disabled) {
@@ -156,37 +216,45 @@
     }
 
     .current-week-display {
-      font-weight: 700;
+      font-weight: 800;
       font-size: 1.15rem;
-      color: var(--primary);
+      color: var(--primary-dark);
       min-width: 230px;
       text-align: center;
+      background: rgba(13, 107, 122, 0.06);
+      border: 1px solid rgba(13, 107, 122, 0.1);
+      border-radius: 12px;
+      padding: 10px 14px;
     }
 
     .resource-selector {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .resource-selector select, .date-picker-input {
-      padding: 8px 12px;
-      border-radius: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
       border: 1px solid var(--border);
       font-size: 0.95rem;
-      font-weight: 600;
+      font-weight: 700;
       background: white;
       color: var(--text);
       outline: none;
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
     }
 
     /* Table Grid */
     .schedule-wrapper {
-      background: var(--card-bg);
-      border-radius: 12px;
+      background: rgba(255,255,255,0.98);
+      border-radius: 22px;
       overflow-x: auto;
       border: 1px solid var(--border);
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      box-shadow: var(--shadow-soft);
+      max-width: 1420px;
+      margin: 0 auto;
     }
 
     table.schedule-table {
@@ -202,9 +270,9 @@
     }
 
     th {
-      background: #f8fafc;
+      background: linear-gradient(180deg, #f5fbfc, #edf5f8);
       color: var(--text);
-      font-weight: 700;
+      font-weight: 800;
       font-size: 1rem;
     }
 
@@ -458,17 +526,23 @@
 <body>
 
   <header>
-    <div class="brand-section">
-      <h1><i class="fa-solid fa-laptop-code"></i> מערכת שיבוץ משאבי מחשוב</h1>
-      <p>ניהול שיבוצים שבועיים, שעות קבועות וזמניות עד 30/6/2027</p>
-    </div>
-    <div class="quick-links">
-      <a href="https://docs.google.com/document/d/1R61VGsyQQH9gBumIIQkdjzaj0QwRj8IIJtI0MgcB_gk/edit?usp=sharing" target="_blank" class="btn-link-action btn-danger-action">
-        <i class="fa-solid fa-triangle-exclamation"></i> דיווח על תקלת מחשוב
-      </a>
-      <a href="https://docs.google.com/document/d/18fGk7peszzTvirYfcFCBYYUBmGo10kKDOe_hBzIpvLk/edit?usp=sharing" target="_blank" class="btn-link-action">
-        <i class="fa-solid fa-table"></i> צפייה במערכת הקיימת
-      </a>
+    <div class="header-inner">
+      <div class="brand-section">
+        <img src="images.png" alt="לוגו מערכת שיבוץ" class="brand-logo" />
+        <div class="brand-copy">
+          <h1>מערכת שיבוץ משאבי מחשוב</h1>
+          <p>ניהול שיבוצים שבועיים, שעות קבועות וזמניות עד 30/6/2027</p>
+        </div>
+      </div>
+
+      <div class="quick-links">
+        <a href="https://docs.google.com/document/d/1R61VGsyQQH9gBumIIQkdjzaj0QwRj8IIJtI0MgcB_gk/edit?usp=sharing" target="_blank" class="btn-link-action btn-danger-action">
+          <i class="fa-solid fa-triangle-exclamation"></i> דיווח על תקלת מחשוב
+        </a>
+        <a href="https://docs.google.com/document/d/18fGk7peszzTvirYfcFCBYYUBmGo10kKDOe_hBzIpvLk/edit?usp=sharing" target="_blank" class="btn-link-action">
+          <i class="fa-solid fa-table"></i> צפייה במערכת הקיימת
+        </a>
+      </div>
     </div>
   </header>
 
