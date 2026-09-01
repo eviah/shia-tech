@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>מערכת שיבוץ חדר מחשבים ומשאבי תקשוב</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --accent: #0ea5e9;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --holiday-bg: #fff1f2;
+      --holiday-border: #fecdd3;
+      --holiday-text: #e11d48;
+      --fixed-slot-bg: #e0f2fe;
+      --fixed-slot-border: #38bdf8;
+      --temp-slot-bg: #ecfdf5;
+      --temp-slot-border: #34d399;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Assistant', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 40px;
+    }
+
+    /* Header & Navigation */
+    header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      color: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .brand-section h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-section p {
+      font-size: 0.95rem;
+      opacity: 0.85;
+    }
+
+    .quick-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-link-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .btn-link-action:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-danger-action {
+      background: #ef4444;
+      border: none;
+    }
+    .btn-danger-action:hover {
+      background: #dc2626;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+
+    /* Controls Bar */
+    .controls-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .week-navigator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: var(--primary-light);
+      color: white;
+      border-color: var(--primary-light);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .current-week-display {
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--primary);
+      min-width: 230px;
+      text-align: center;
+    }
+
+    .resource-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .resource-selector select, .date-picker-input {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: white;
+      color: var(--text);
+      outline: none;
+    }
+
+    /* Table Grid */
+    .schedule-wrapper {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    table.schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      min-width: 900px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 8px;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    th.day-header {
+      width: 15%;
+      position: relative;
+    }
+
+    th.hour-col {
+      width: 8%;
+      background: #f1f5f9;
+      font-size: 0.9rem;
+    }
+
+    .day-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+    .day-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .holiday-badge {
+      background: var(--holiday-bg);
+      color: var(--holiday-text);
+      border: 1px solid var(--holiday-border);
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    /* Slot Card */
+    .slot-cell {
+      height: 95px;
+      vertical-align: top;
+      position: relative;
+      padding: 4px;
+      background: #ffffff;
+      transition: background 0.15s ease;
+    }
+
+    .slot-cell.is-holiday {
+      background: #fff8f8;
+    }
+
+    .slot-cell.empty-slot {
+      cursor: pointer;
+    }
+    .slot-cell.empty-slot:hover {
+      background: #f1f5f9;
+    }
+
+    .add-prompt {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      gap: 5px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .slot-cell.empty-slot:hover .add-prompt {
+      opacity: 1;
+    }
+
+    .booking-card {
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: right;
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+      font-size: 0.85rem;
+    }
+
+    .booking-card.fixed {
+      background: var(--fixed-slot-bg);
+      border-right: 4px solid var(--fixed-slot-border);
+      border-top: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .booking-card.temp {
+      background: var(--temp-slot-bg);
+      border-right: 4px solid var(--temp-slot-border);
+      border-top: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .booking-teacher {
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .booking-meta {
+      font-size: 0.8rem;
+      color: #334155;
+      font-weight: 600;
+      margin: 2px 0;
+    }
+
+    .booking-type-tag {
+      font-size: 0.7rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .booking-type-tag.fixed {
+      background: #bae6fd;
+      color: #0369a1;
+    }
+    .booking-type-tag.temp {
+      background: #a7f3d0;
+      color: #047857;
+    }
+
+    .btn-cancel-slot {
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .btn-cancel-slot:hover {
+      background: #fee2e2;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .modal-header h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      text-align: right;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .form-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .form-checkbox input {
+      width: auto;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-submit {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-submit:hover {
+      background: var(--primary-light);
+    }
+
+    .btn-cancel {
+      background: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-section">
+      <h1><i class="fa-solid fa-laptop-code"></i> מערכת שיבוץ משאבי מחשוב</h1>
+      <p>ניהול שיבוצים שבועיים, שעות קבועות וזמניות עד 30/6/2027</p>
+    </div>
+    <div class="quick-links">
+      <a href="https://docs.google.com/document/d/1R61VGsyQQH9gBumIIQkdjzaj0QwRj8IIJtI0MgcB_gk/edit?usp=sharing" target="_blank" class="btn-link-action btn-danger-action">
+        <i class="fa-solid fa-triangle-exclamation"></i> דיווח על תקלת מחשוב
+      </a>
+      <a href="https://docs.google.com/document/d/18fGk7peszzTvirYfcFCBYYUBmGo10kKDOe_hBzIpvLk/edit?usp=sharing" target="_blank" class="btn-link-action">
+        <i class="fa-solid fa-table"></i> צפייה במערכת הקיימת
+      </a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="controls-card">
+      <div class="week-navigator">
+        <button class="nav-btn" id="prevWeekBtn"><i class="fa-solid fa-chevron-right"></i> שבוע קודם</button>
+        <button class="nav-btn" id="todayBtn"><i class="fa-solid fa-calendar-day"></i> השבוע הנוכחי</button>
+        <button class="nav-btn" id="nextWeekBtn">שבוע הבא <i class="fa-solid fa-chevron-left"></i></button>
+        <span class="current-week-display" id="weekRangeLabel">טוען...</span>
+      </div>
+
+      <div class="resource-selector">
+        <label for="resourceSelect"><strong>משאב:</strong></label>
+        <select id="resourceSelect">
+          <option value="lab1">חדר מחשבים א'</option>
+          <option value="lab2">חדר מחשבים ב'</option>
+          <option value="cart1">עגלת כרומבוקים 1</option>
+          <option value="cart2">עגלת מחשבים ניידים 2</option>
+        </select>
+        <input type="date" id="datePicker" class="date-picker-input" title="קפוץ לתאריך">
+      </div>
+    </div>
+
+    <div class="schedule-wrapper">
+      <table class="schedule-table">
+        <thead>
+          <tr id="tableHeaderRow">
+            <th class="hour-col">שעה</th>
+            </tr>
+        </thead>
+        <tbody id="scheduleBody">
+          </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="bookingModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">שיבוץ שיעור</h3>
+        <button class="modal-close" id="closeModalBtn">&times;</button>
+      </div>
+      <form id="bookingForm">
+        <input type="hidden" id="slotDayIndex">
+        <input type="hidden" id="slotHourIndex">
+        <input type="hidden" id="slotDate">
+
+        <div class="form-group">
+          <label>פרטי השיעור הנבחר:</label>
+          <div id="slotDetailsText" style="color: var(--primary); font-weight: bold; margin-bottom: 10px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="teacherName">שם המורה:*</label>
+          <input type="text" id="teacherName" placeholder="לדוגמה: רונית כהן" required>
+        </div>
+
+        <div class="form-group">
+          <label for="className">כיתה / שכבה:*</label>
+          <input type="text" id="className" placeholder="לדוגמה: ה'1, כיתה ו'..." required>
+        </div>
+
+        <div class="form-group">
+          <label for="subjectName">מקצוע / פעילות:</label>
+          <input type="text" id="subjectName" placeholder="לדוגמה: מתמטיקה, מדעים, שעת קוד">
+        </div>
+
+        <div class="form-group">
+          <label class="form-checkbox">
+            <input type="checkbox" id="isFixedSlot">
+            <span><strong>שעה קבועה במערכת</strong> (תשובץ אוטומטית בכל השבועות)</span>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="cancelModalBtn">ביטול</button>
+          <button type="submit" class="btn-submit">אישור שיבוץ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       נתוני חגים ומועדים (סנכרון חופשות משרד החינוך עד 30.6.2027)
+       ========================================================================= */
+    const HOLIDAYS_DB = {
+      // תשפ"ה (2024-2025)
+      "2024-10-02": "ערב ראש השנה", "2024-10-03": "ראש השנה א'", "2024-10-04": "ראש השנה ב'",
+      "2024-10-11": "ערב יום כיפור", "2024-10-12": "יום כיפור",
+      "2024-10-16": "ערב סוכות", "2024-10-17": "סוכות", "2024-10-23": "ערב שמחת תורה", "2024-10-24": "שמחת תורה",
+      "2024-12-26": "חנוכה", "2024-12-27": "חנוכה", "2024-12-28": "חנוכה", "2024-12-29": "חנוכה", "2024-12-30": "חנוכה", "2024-12-31": "חנוכה", "2025-01-01": "חנוכה", "2025-01-02": "חנוכה",
+      "2025-03-14": "פורים", "2025-03-15": "שושן פורים",
+      "2025-04-05": "חופשת פסח", "2025-04-12": "ערב פסח", "2025-04-13": "פסח", "2025-04-19": "שביעי של פסח",
+      "2025-04-30": "יום הזיכרון", "2025-05-01": "יום העצמאות",
+      "2025-05-16": "ל\"ג בעומר", "2025-06-01": "ערב שבועות", "2025-06-02": "שבועות",
+
+      // תשפ"ו (2025-2026)
+      "2025-09-22": "ערב ראש השנה", "2025-09-23": "ראש השנה א'", "2025-09-24": "ראש השנה ב'",
+      "2025-10-01": "ערב יום כיפור", "2025-10-02": "יום כיפור",
+      "2025-10-06": "ערב סוכות", "2025-10-07": "סוכות", "2025-10-14": "שמחת תורה",
+      "2025-12-15": "חנוכה", "2025-12-16": "חנוכה", "2025-12-17": "חנוכה", "2025-12-18": "חנוכה", "2025-12-19": "חנוכה", "2025-12-20": "חנוכה", "2025-12-21": "חנוכה", "2025-12-22": "חנוכה",
+      "2026-03-03": "פורים", "2026-03-04": "שושן פורים",
+      "2026-03-24": "חופשת פסח", "2026-04-01": "ערב פסח", "2026-04-02": "פסח", "2026-04-08": "שביעי של פסח",
+      "2026-04-21": "יום הזיכרון", "2026-04-22": "יום העצמאות",
+      "2026-05-05": "ל\"ג בעומר", "2026-05-21": "ערב שבועות", "2026-05-22": "שבועות",
+
+      // תשפ"ז (2026-2027 עד 30.6.2027)
+      "2026-09-11": "ערב ראש השנה", "2026-09-12": "ראש השנה א'", "2026-09-13": "ראש השנה ב'",
+      "2026-09-20": "ערב יום כיפור", "2026-09-21": "יום כיפור",
+      "2026-09-25": "ערב סוכות", "2026-09-26": "סוכות", "2026-10-03": "שמחת תורה",
+      "2026-12-05": "חנוכה", "2026-12-06": "חנוכה", "2026-12-07": "חנוכה", "2026-12-08": "חנוכה", "2026-12-09": "חנוכה", "2026-12-10": "חנוכה", "2026-12-11": "חנוכה", "2026-12-12": "חנוכה",
+      "2027-03-23": "פורים", "2027-03-24": "שושן פורים",
+      "2027-04-14": "חופשת פסח", "2027-04-21": "ערב פסח", "2027-04-22": "פסח", "2027-04-28": "שביעי של פסח",
+      "2027-05-11": "יום הזיכרון", "2027-05-12": "יום העצמאות",
+      "2027-05-25": "ל\"ג בעומר", "2027-06-10": "ערב שבועות", "2027-06-11": "שבועות"
+    };
+
+    const DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי"];
+    const HOURS = [
+      { num: 1, time: "08:00 - 08:45" },
+      { num: 2, time: "08:45 - 09:30" },
+      { num: 3, time: "09:45 - 10:30" },
+      { num: 4, time: "10:30 - 11:15" },
+      { num: 5, time: "11:45 - 12:30" },
+      { num: 6, time: "12:30 - 13:15" },
+      { num: 7, time: "13:30 - 14:15" },
+      { num: 8, time: "14:15 - 15:00" }
+    ];
+
+    const MIN_DATE = new Date("2024-09-01");
+    const MAX_DATE = new Date("2027-06-30");
+
+    let currentSunday = getSunday(new Date());
+    let currentResource = "lab1";
+
+    /* =========================================================================
+       אחסון נתונים ב-LocalStorage
+       ========================================================================= */
+    function getStoredData(key, defaultVal) {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : defaultVal;
+    }
+
+    function setStoredData(key, val) {
+      localStorage.setItem(key, JSON.stringify(val));
+    }
+
+    // שעות קבועות: fixed_bookings { resourceId: { "day_hour": { teacher, class, subject } } }
+    let fixedBookings = getStoredData("computer_fixed_bookings", {});
+    // שיבוצים זמניים: temp_bookings { "YYYY-MM-DD": { resourceId: { "hour": { teacher, class, subject } } } }
+    let tempBookings = getStoredData("computer_temp_bookings", {});
+    // ביטולים של שעה קבועה בשבוע ספציפי: overrides { "YYYY-MM-DD": { resourceId: { "hour": true } } }
+    let cancelledFixed = getStoredData("computer_cancelled_fixed", {});
+
+    /* =========================================================================
+       עזרי תאריכים
+       ========================================================================= */
+    function getSunday(d) {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diff = date.getDate() - day;
+      const sun = new Date(date.setDate(diff));
+      sun.setHours(0,0,0,0);
+      return sun;
+    }
+
+    function formatDateKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDateDisplay(date) {
+      return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+    }
+
+    function addDays(date, days) {
+      const res = new Date(date);
+      res.setDate(res.getDate() + days);
+      return res;
+    }
+
+    /* =========================================================================
+       רינדור לוח השעות
+       ========================================================================= */
+    function renderSchedule() {
+      // בדיקת גבולות תאריכים עד 30/6/2027
+      const friday = addDays(currentSunday, 5);
+      document.getElementById('prevWeekBtn').disabled = currentSunday <= MIN_DATE;
+      document.getElementById('nextWeekBtn').disabled = friday >= MAX_DATE;
+
+      // כותרת שבוע
+      document.getElementById('weekRangeLabel').innerText = 
+        `${formatDateDisplay(currentSunday)} - ${formatDateDisplay(friday)}`;
+
+      // יצירת כותרות ימים
+      const headerRow = document.getElementById('tableHeaderRow');
+      headerRow.innerHTML = '<th class="hour-col"><i class="fa-regular fa-clock"></i> שעה</th>';
+
+      const weekDates = [];
+      for (let i = 0; i < 6; i++) {
+        const dayDate = addDays(currentSunday, i);
+        weekDates.push(dayDate);
+        const dateKey = formatDateKey(dayDate);
+        const holiday = HOLIDAYS_DB[dateKey];
+
+        const th = document.createElement('th');
+        th.className = 'day-header';
+        th.innerHTML = `
+          <div class="day-name">יום ${DAYS[i]}</div>
+          <div class="day-date">${formatDateDisplay(dayDate)}</div>
+          ${holiday ? `<div class="holiday-badge"><i class="fa-solid fa-star"></i> ${holiday}</div>` : ''}
+        `;
+        headerRow.appendChild(th);
+      }
+
+      // יצירת שורות השעות
+      const tbody = document.getElementById('scheduleBody');
+      tbody.innerHTML = '';
+
+      HOURS.forEach(hour => {
+        const tr = document.createElement('tr');
+        
+        // עמודת שעה
+        const tdHour = document.createElement('td');
+        tdHour.className = 'hour-col';
+        tdHour.innerHTML = `<strong>שעה ${hour.num}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${hour.time}</span>`;
+        tr.appendChild(tdHour);
+
+        // עמודות ימים
+        for (let dayIdx = 0; dayIdx < 6; dayIdx++) {
+          const dayDate = weekDates[dayIdx];
+          const dateKey = formatDateKey(dayDate);
+          const holiday = HOLIDAYS_DB[dateKey];
+
+          const td = document.createElement('td');
+          td.className = `slot-cell ${holiday ? 'is-holiday' : ''}`;
+
+          // בדיקת שיבוץ קיים
+          const slotKey = `${dayIdx}_${hour.num}`;
+          const isFixedCancelled = cancelledFixed[dateKey]?.[currentResource]?.[hour.num];
+          const fixedData = (!isFixedCancelled && fixedBookings[currentResource]?.[slotKey]) || null;
+          const tempData = tempBookings[dateKey]?.[currentResource]?.[hour.num] || null;
+
+          if (tempData) {
+            // שיבוץ זמני
+            td.innerHTML = `
+              <div class="booking-card temp">
+                <div>
+                  <div class="booking-teacher">
+                    <span><i class="fa-solid fa-chalkboard-user"></i> ${tempData.teacher}</span>
+                    <button class="btn-cancel-slot" title="בטל שיבוץ" onclick="cancelTempSlot('${dateKey}', '${hour.num}')">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                  <div class="booking-meta"><i class="fa-solid fa-users"></i> ${tempData.className} | ${tempData.subject || 'שיעור'}</div>
+                </div>
+                <div><span class="booking-type-tag temp">זמני (חד-פעמי)</span></div>
+              </div>
+            `;
+          } else if (fixedData) {
+            // שיבוץ קבוע
+            td.innerHTML = `
+              <div class="booking-card fixed">
+                <div>
+                  <div class="booking-teacher">
+                    <span><i class="fa-solid fa-lock"></i> ${fixedData.teacher}</span>
+                    <button class="btn-cancel-slot" title="בטל שיעור קבוע לשבוע זה" onclick="cancelFixedForThisWeek('${dateKey}', '${hour.num}')">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                  <div class="booking-meta"><i class="fa-solid fa-users"></i> ${fixedData.className} | ${fixedData.subject || 'קבוע'}</div>
+                </div>
+                <div><span class="booking-type-tag fixed">שעה קבועה</span></div>
+              </div>
+            `;
+          } else {
+            // משבצת פנויה
+            td.classList.add('empty-slot');
+            td.innerHTML = `<div class="add-prompt"><i class="fa-solid fa-plus-circle"></i> שיבוץ</div>`;
+            td.onclick = () => openBookingModal(dayIdx, hour.num, dayDate);
+          }
+
+          tr.appendChild(td);
+        }
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* =========================================================================
+       פעולות מודאל ושיבוץ
+       ========================================================================= */
+    const modal = document.getElementById('bookingModal');
+    const form = document.getElementById('bookingForm');
+
+    function openBookingModal(dayIndex, hourNum, dateObj) {
+      document.getElementById('slotDayIndex').value = dayIndex;
+      document.getElementById('slotHourIndex').value = hourNum;
+      document.getElementById('slotDate').value = formatDateKey(dateObj);
+      
+      const holiday = HOLIDAYS_DB[formatDateKey(dateObj)];
+      document.getElementById('slotDetailsText').innerHTML = `
+        יום ${DAYS[dayIndex]} (${formatDateDisplay(dateObj)}) | שעה ${hourNum}
+        ${holiday ? `<br><span style="color:var(--danger); font-size:0.85rem;"><i class="fa-solid fa-info-circle"></i> שימו לב: יום זה מסומן כ${holiday}</span>` : ''}
+      `;
+
+      document.getElementById('teacherName').value = '';
+      document.getElementById('className').value = '';
+      document.getElementById('subjectName').value = '';
+      document.getElementById('isFixedSlot').checked = false;
+
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    document.getElementById('closeModalBtn').onclick = closeModal;
+    document.getElementById('cancelModalBtn').onclick = closeModal;
+
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      const dayIdx = document.getElementById('slotDayIndex').value;
+      const hourNum = document.getElementById('slotHourIndex').value;
+      const dateKey = document.getElementById('slotDate').value;
+      const teacher = document.getElementById('teacherName').value.trim();
+      const className = document.getElementById('className').value.trim();
+      const subject = document.getElementById('subjectName').value.trim();
+      const isFixed = document.getElementById('isFixedSlot').checked;
+
+      if (isFixed) {
+        // שמירה כשעה קבועה
+        if (!fixedBookings[currentResource]) fixedBookings[currentResource] = {};
+        fixedBookings[currentResource][`${dayIdx}_${hourNum}`] = { teacher, className, subject };
+        setStoredData("computer_fixed_bookings", fixedBookings);
+      } else {
+        // שמירה כשיעור זמני
+        if (!tempBookings[dateKey]) tempBookings[dateKey] = {};
+        if (!tempBookings[dateKey][currentResource]) tempBookings[dateKey][currentResource] = {};
+        tempBookings[dateKey][currentResource][hourNum] = { teacher, className, subject };
+        setStoredData("computer_temp_bookings", tempBookings);
+      }
+
+      // במידה והיה ביטול בעבר לשעה זו, מנקים אותו
+      if (cancelledFixed[dateKey]?.[currentResource]?.[hourNum]) {
+        delete cancelledFixed[dateKey][currentResource][hourNum];
+        setStoredData("computer_cancelled_fixed", cancelledFixed);
+      }
+
+      closeModal();
+      renderSchedule();
+    };
+
+    /* =========================================================================
+       ביטולי שיעורים
+       ========================================================================= */
+    window.cancelTempSlot = function(dateKey, hourNum) {
+      if (confirm("האם לבטל את השיעור הזמני? המשבצת תתפנה מיד.")) {
+        if (tempBookings[dateKey]?.[currentResource]?.[hourNum]) {
+          delete tempBookings[dateKey][currentResource][hourNum];
+          setStoredData("computer_temp_bookings", tempBookings);
+          renderSchedule();
+        }
+      }
+    };
+
+    window.cancelFixedForThisWeek = function(dateKey, hourNum) {
+      if (confirm("האם לבטל את השעה הקבועה לשבוע זה בלבד? (השעה תמשיך להופיע בשבועות הבאים)")) {
+        if (!cancelledFixed[dateKey]) cancelledFixed[dateKey] = {};
+        if (!cancelledFixed[dateKey][currentResource]) cancelledFixed[dateKey][currentResource] = {};
+        cancelledFixed[dateKey][currentResource][hourNum] = true;
+        setStoredData("computer_cancelled_fixed", cancelledFixed);
+        renderSchedule();
+      }
+    };
+
+    /* =========================================================================
+       אירועי ניווט ומשאבים
+       ========================================================================= */
+    document.getElementById('prevWeekBtn').onclick = () => {
+      currentSunday = addDays(currentSunday, -7);
+      renderSchedule();
+    };
+
+    document.getElementById('nextWeekBtn').onclick = () => {
+      currentSunday = addDays(currentSunday, 7);
+      renderSchedule();
+    };
+
+    document.getElementById('todayBtn').onclick = () => {
+      currentSunday = getSunday(new Date());
+      renderSchedule();
+    };
+
+    document.getElementById('resourceSelect').onchange = (e) => {
+      currentResource = e.target.value;
+      renderSchedule();
+    };
+
+    document.getElementById('datePicker').onchange = (e) => {
+      if (e.target.value) {
+        currentSunday = getSunday(new Date(e.target.value));
+        renderSchedule();
+      }
+    };
+
+    // אתחול ראשוני
+    renderSchedule();
+  </script>
+</body>
+</html>
