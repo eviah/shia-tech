@@ -815,9 +815,138 @@
     .login-submit:hover {
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     }
+
+    /* כותרת משאב נבחר - בולטת מעל הלוח */
+    .resource-title-banner {
+      max-width: 1420px;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #0f7b85, #0d6b7a 60%, #0a4e59);
+      color: white;
+      font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      padding: 14px 20px;
+      border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(13, 107, 122, 0.22);
+    }
+
+    .resource-title-banner i {
+      color: var(--accent);
+      font-size: 1.1em;
+    }
+
+    /* נוחות שימוש בטלפון: עמודת השעות נשארת קבועה בגלילה אופקית */
+    @media (max-width: 900px) {
+      th.hour-col, td.hour-col {
+        position: sticky;
+        right: 0;
+        z-index: 5;
+        box-shadow: -6px 0 8px -6px rgba(15, 23, 42, 0.15);
+      }
+      td.hour-col {
+        background: #f8fbfc;
+      }
+    }
+
+    /* נוחות שימוש: על מסך מגע תמיד מציגים רמז "שיבוץ" (אין hover) */
+    @media (hover: none) {
+      .add-prompt {
+        opacity: 0.55 !important;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .controls-card {
+        padding: 16px;
+      }
+
+      .nav-btn {
+        padding: 12px 14px;
+        flex: 1 1 auto;
+      }
+
+      .week-navigator {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .current-week-display {
+        order: -1;
+        width: 100%;
+        min-width: unset;
+      }
+
+      .resource-selector {
+        width: 100%;
+      }
+
+      .resource-selector-row select,
+      .resource-selector-row .date-picker-input {
+        flex: 1 1 auto;
+      }
+
+      .slot-cell {
+        height: 78px;
+      }
+
+      .booking-card {
+        font-size: 0.78rem;
+      }
+
+      .btn-cancel-slot {
+        padding: 6px 8px;
+        font-size: 0.95rem;
+      }
+
+      .modal-content {
+        max-width: 94vw;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+    }
+
+    /* הודעת "ברוך שובך" למשתמש מוכר */
+    .welcome-toast {
+      position: fixed;
+      top: 16px;
+      right: 50%;
+      transform: translate(50%, -140%);
+      background: linear-gradient(135deg, #0f7b85, #0d6b7a);
+      color: white;
+      font-weight: 700;
+      font-size: 0.92rem;
+      padding: 12px 20px;
+      border-radius: 999px;
+      box-shadow: 0 14px 30px rgba(13, 107, 122, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 3000;
+      opacity: 0;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .welcome-toast.show {
+      transform: translate(50%, 0);
+      opacity: 1;
+    }
+
+    .welcome-toast i {
+      color: var(--accent);
+    }
   </style>
 </head>
 <body>
+
+  <div class="welcome-toast" id="welcomeToast">
+    <i class="fa-solid fa-hand-sparkles"></i>
+    <span id="welcomeToastText"></span>
+  </div>
 
   <header>
     <div class="header-inner">
@@ -867,6 +996,8 @@
         </div>
       </div>
     </div>
+
+    <div class="resource-title-banner" id="resourceTitleBanner"></div>
 
     <div class="schedule-wrapper">
       <table class="schedule-table">
@@ -1216,12 +1347,27 @@
        ========================================================================= */
     let currentUser = localStorage.getItem('computer_current_user') || '';
 
+    // שמות בעלי הרשאת ניהול - יכולים לבטל/למחוק שיבוצים של כל אחד, לא רק את שלהם
+    const ADMIN_NAMES = ["חן", "חן חכם"];
+
+    function isAdminUser() {
+      if (!currentUser) return false;
+      const normalized = currentUser.trim().toLowerCase();
+      return ADMIN_NAMES.some(n => n.toLowerCase() === normalized);
+    }
+
     function updateUserLabel() {
-      document.getElementById('currentUserLabel').innerText = currentUser ? currentUser : 'התחברות';
+      const label = currentUser ? currentUser + (isAdminUser() ? ' 👑' : '') : 'התחברות';
+      document.getElementById('currentUserLabel').innerText = label;
     }
 
     function isOwner(name) {
       return currentUser && name && currentUser.trim().toLowerCase() === name.trim().toLowerCase();
+    }
+
+    // האם המשתמש הנוכחי רשאי לבטל שיבוץ נתון (בעל השיבוץ, או מנהל/ת)
+    function canManage(name) {
+      return isAdminUser() || isOwner(name);
     }
 
     function openLoginModal() {
@@ -1235,6 +1381,14 @@
 
     document.getElementById('changeUserBtn').onclick = openLoginModal;
     document.getElementById('closeLoginModalBtn').onclick = closeLoginModal;
+
+    // "ברוך שובך" - מוצג למשתמש שכבר זוהה בעבר, כדי שלא יצטרך להזין שם שוב
+    function showWelcomeBackToast(name) {
+      const toast = document.getElementById('welcomeToast');
+      document.getElementById('welcomeToastText').innerText = `ברוך שובך, ${name}!`;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3200);
+    }
 
     /* =========================================================================
        תקנון שימוש
@@ -1288,6 +1442,11 @@
        רינדור לוח השעות
        ========================================================================= */
     function renderSchedule() {
+      // כותרת המשאב הנבחר - בולטת מעל הלוח
+      const resourceIcon = currentResource.startsWith('cart') ? 'fa-laptop' : 'fa-display';
+      document.getElementById('resourceTitleBanner').innerHTML =
+        `<i class="fa-solid ${resourceIcon}"></i> <span>${resourceLabel(currentResource)}</span>`;
+
       // בדיקת גבולות תאריכים עד 30/6/2027
       const friday = addDays(currentSunday, 5);
       document.getElementById('prevWeekBtn').disabled = currentSunday <= MIN_DATE;
@@ -1348,7 +1507,7 @@
 
           if (tempData) {
             // שיבוץ זמני
-            const canCancelTemp = isOwner(tempData.teacher);
+            const canCancelTemp = canManage(tempData.teacher);
             td.innerHTML = `
               <div class="booking-card temp">
                 <div>
@@ -1365,7 +1524,7 @@
             `;
           } else if (fixedData) {
             // שיבוץ קבוע
-            const canCancelFixed = isOwner(fixedData.teacher);
+            const canCancelFixed = canManage(fixedData.teacher);
             td.innerHTML = `
               <div class="booking-card fixed">
                 <div>
@@ -1470,7 +1629,7 @@
        ========================================================================= */
     window.cancelTempSlot = function(dateKey, hourNum) {
       const existing = tempBookings[dateKey]?.[currentResource]?.[hourNum];
-      if (!existing || !isOwner(existing.teacher)) {
+      if (!existing || !canManage(existing.teacher)) {
         alert('ניתן לבטל רק שיבוצים שנוצרו על ידכם.');
         return;
       }
@@ -1484,7 +1643,7 @@
     window.cancelFixedForThisWeek = function(dateKey, hourNum) {
       const dayIdx = [0, 1, 2, 3, 4, 5].findIndex(i => formatDateKey(addDays(currentSunday, i)) === dateKey);
       const fixedEntry = fixedBookings[currentResource]?.[`${dayIdx}_${hourNum}`];
-      if (!fixedEntry || !isOwner(fixedEntry.teacher)) {
+      if (!fixedEntry || !canManage(fixedEntry.teacher)) {
         alert('ניתן לבטל רק שיעורים קבועים שנוצרו על ידכם.');
         return;
       }
@@ -1588,6 +1747,8 @@
     updateUserLabel();
     if (!currentUser) {
       openLoginModal();
+    } else {
+      showWelcomeBackToast(currentUser);
     }
     document.getElementById('dismissSetupBtn').onclick = () => {
       document.getElementById('setupOverlay').style.display = 'none';
