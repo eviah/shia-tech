@@ -439,6 +439,10 @@
     .btn-cancel-slot:hover {
       background: #fee2e2;
     }
+    .slot-actions {
+      display: inline-flex;
+      gap: 2px;
+    }
 
     /* Modal */
     .modal-backdrop {
@@ -1515,9 +1519,12 @@
                 <div>
                   <div class="booking-teacher">
                     <span><i class="fa-solid fa-chalkboard-user"></i> ${tempData.teacher}</span>
+                    <span class="slot-actions">
                     ${canCancelTemp ? `<button class="btn-cancel-slot" title="בטל שיבוץ" onclick="cancelTempSlot('${dateKey}', '${hour.num}')">
                       <i class="fa-solid fa-trash-can"></i>
                     </button>` : ''}
+                    ${adminDeleteAllBtn(tempData.teacher)}
+                    </span>
                   </div>
                   <div class="booking-meta"><i class="fa-solid fa-users"></i> ${tempData.className} | ${tempData.subject || 'שיעור'}</div>
                 </div>
@@ -1532,9 +1539,15 @@
                 <div>
                   <div class="booking-teacher">
                     <span><i class="fa-solid fa-lock"></i> ${fixedData.teacher}</span>
+                    <span class="slot-actions">
                     ${canCancelFixed ? `<button class="btn-cancel-slot" title="בטל שיעור קבוע לשבוע זה" onclick="cancelFixedForThisWeek('${dateKey}', '${hour.num}')">
                       <i class="fa-solid fa-xmark"></i>
                     </button>` : ''}
+                    ${isAdminUser() ? `<button class="btn-cancel-slot" title="מחק שיעור קבוע זה לצמיתות (מנהל/ת)" onclick="adminDeleteFixedSlot('${slotKey}')">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>` : ''}
+                    ${adminDeleteAllBtn(fixedData.teacher)}
+                    </span>
                   </div>
                   <div class="booking-meta"><i class="fa-solid fa-users"></i> ${fixedData.className} | ${fixedData.subject || 'קבוע'}</div>
                 </div>
@@ -1656,6 +1669,50 @@
         persistState("cancelledFixed");
         renderSchedule();
       }
+    };
+
+    /* =========================================================================
+       מחיקות מנהל/ת
+       ========================================================================= */
+    function adminDeleteAllBtn(teacher) {
+      if (!isAdminUser()) return '';
+      return `<button class="btn-cancel-slot" title="מחק את כל השיעורים של ${teacher} (מנהל/ת)" onclick="adminDeleteAllByTeacher('${encodeURIComponent(teacher)}')">
+                      <i class="fa-solid fa-user-xmark"></i>
+                    </button>`;
+    }
+
+    window.adminDeleteFixedSlot = function(slotKey) {
+      if (!isAdminUser()) return;
+      const entry = fixedBookings[currentResource]?.[slotKey];
+      if (!entry) return;
+      if (confirm(`למחוק לצמיתות את השעה הקבועה של ${entry.teacher}? השעה תימחק מכל השבועות.`)) {
+        delete fixedBookings[currentResource][slotKey];
+        persistState("fixedBookings");
+        renderSchedule();
+      }
+    };
+
+    window.adminDeleteAllByTeacher = function(encodedTeacher) {
+      if (!isAdminUser()) return;
+      const teacher = decodeURIComponent(encodedTeacher);
+      const norm = teacher.trim().toLowerCase();
+      const matches = (b) => b && b.teacher && b.teacher.trim().toLowerCase() === norm;
+
+      let fixedCount = 0, tempCount = 0;
+      Object.values(fixedBookings).forEach(res => Object.values(res || {}).forEach(b => { if (matches(b)) fixedCount++; }));
+      Object.values(tempBookings).forEach(day => Object.values(day || {}).forEach(res => Object.values(res || {}).forEach(b => { if (matches(b)) tempCount++; })));
+
+      if (!confirm(`למחוק את כל השיעורים של ${teacher} בכל החדרים/העגלות?\n${fixedCount} שעות קבועות ו-${tempCount} שיבוצים זמניים יימחקו. לא ניתן לבטל פעולה זו.`)) return;
+
+      Object.values(fixedBookings).forEach(res => {
+        Object.keys(res || {}).forEach(k => { if (matches(res[k])) delete res[k]; });
+      });
+      Object.values(tempBookings).forEach(day => Object.values(day || {}).forEach(res => {
+        Object.keys(res || {}).forEach(k => { if (matches(res[k])) delete res[k]; });
+      }));
+      if (fixedCount) persistState("fixedBookings");
+      if (tempCount) persistState("tempBookings");
+      renderSchedule();
     };
 
     /* =========================================================================
